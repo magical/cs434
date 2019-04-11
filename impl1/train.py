@@ -32,10 +32,10 @@ def train(features, target):
     # add 1s column
     X = numpy.concatenate((numpy.ones((X.shape[0], 1)), X), axis=1)
     X = numpy.matrix(X)
-    print(X)
+    #print(X)
 
     w = ((X.T * X).I * X.T).dot(Y)
-    w = numpy.array(w).flatten()
+    w = numpy.ravel(w)
     print(w)
     return w
 
