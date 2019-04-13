@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 import csv
 import numpy
 
 eta = 0.01
+training_accuracy = []
+testing_accuracy = []
 
 def main():
     global eta
@@ -17,10 +20,15 @@ def main():
     testing_data, testing_target = load_data(testing_file)
 
     print("eta = ", eta)
-    w = train(training_data, training_target)
+    w = train(training_data, training_target, testing_data, testing_target)
     print(w)
     print("training ASE = ", evaluate(w, training_data, training_target))
     print("testing ASE  = ", evaluate(w, testing_data, testing_target))
+
+    with open("q2.1-plot.py", "w") as f:
+        f.write(graph_py % (training_accuracy, testing_accuracy))
+    os.system("python2 q2.1-plot.py")
+
 
 def load_data(filename):
     """load space-separated floating-point data"""
@@ -33,10 +41,11 @@ def load_data(filename):
             target.append(float(row[-1]))
     data = numpy.array(data, dtype=numpy.float32)
     target = numpy.array(target, dtype=numpy.float32)
+    data /= numpy.max(data) # normalize features
     return data, target
 
-def train(features, target):
-    return descend_batch(features, target)
+def train(features, target, testing_data, testing_target):
+    return descend_batch(features, target, testing_data, testing_target)
 
 def descend_simple():
     # Simple gradient descent
@@ -47,7 +56,7 @@ def descend_simple():
             yhat = sigma(w.dot(x))
             w = w - eta*(yhat - y)*x
 
-def descend_batch(features, target):
+def descend_batch(features, target, testing_data, testing_target):
     X = features
     Y = target
     # batch gradient descent
@@ -64,9 +73,9 @@ def descend_batch(features, target):
         w = w - eta*grad
         print(w[:10])
 
-        # TODO: for each iteration, plot the accuracy
-        #print(w)
         print("eval", evaluate(w, X, Y))
+        training_accuracy.append(evaluate(w, X, Y))
+        testing_accuracy.append(evaluate(w, testing_data, testing_target))
     return w
 
 def sigma(a):
@@ -89,5 +98,25 @@ def logloss(w, X, Y):
 
 def ase(x):
     return numpy.sum(numpy.square(x)) / len(x)
+
+
+graph_py = r"""
+import matplotlib
+matplotlib.use('cairo')
+import matplotlib.pyplot as plt
+import numpy
+
+training_accuracy = numpy.array(%r)
+testing_accuracy = numpy.array(%r)
+x = numpy.arange(0, len(training_accuracy))
+
+fig, ax = plt.subplots()
+ax.plot(x, training_accuracy, c='black')
+ax.plot(x, testing_accuracy, c='blue')
+ax.set(xlabel = 'iterations', ylabel = 'accuracy')
+fig.savefig("q2.1-accuracy.png")
+#plt.show()
+
+"""
 
 main()
