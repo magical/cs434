@@ -5,30 +5,40 @@ import sys
 import csv
 import numpy
 
-eta = 0.01
+eta = 1.0
+lambda_ = 1.0
+
 training_accuracy = []
 testing_accuracy = []
 
 def main():
     global eta
+    global lambda_
     training_file = sys.argv[1]
     testing_file = sys.argv[2]
     if len(sys.argv) > 3:
-        eta = float(sys.argv[3])
+        lambdas = [float(x) for x in sys.argv[3].split(",")]
+    else:
+        lambdas = [0.0]
 
     training_data, training_target = load_data(training_file)
     testing_data, testing_target = load_data(testing_file)
 
     print("eta = ", eta)
-    w = train(training_data, training_target, testing_data, testing_target)
-    print(w)
-    print("training accuracy = ", evaluate(w, training_data, training_target))
-    print("testing accuracy  = ", evaluate(w, testing_data, testing_target))
+    for lambda_ in lambdas:
+        print("lambda = ", lambda_)
+        w = descend_batch(training_data, training_target, testing_data, testing_target, lambda_)
+        tr_acc = evaluate(w, training_data, training_target)
+        te_acc = evaluate(w, testing_data, testing_target)
+        print("w = ", w)
+        print("training accuracy = ", tr_acc)
+        print("testing accuracy  = ", te_acc)
+        training_accuracy.append(tr_acc)
+        testing_accuracy.append(te_acc)
 
-    with open("q2.1-plot.py", "w") as f:
-        f.write(graph_py % (training_accuracy, testing_accuracy))
-    os.system("python2 q2.1-plot.py")
-
+    with open("q2.3-plot.py", "w") as f:
+        f.write(graph_py % (training_accuracy, testing_accuracy, lambdas))
+    os.system("python2 q2.3-plot.py")
 
 def load_data(filename):
     """load space-separated floating-point data"""
@@ -44,24 +54,12 @@ def load_data(filename):
     data /= numpy.max(data) # normalize features
     return data, target
 
-def train(features, target, testing_data, testing_target):
-    return descend_batch(features, target, testing_data, testing_target)
-
-def descend_simple():
-    # Simple gradient descent
-    while True:
-        for i in range(n):
-            y = Y[i]
-            x = X[i]
-            yhat = sigma(w.dot(x))
-            w = w - eta*(yhat - y)*x
-
-def descend_batch(features, target, testing_data, testing_target):
+def descend_batch(features, target, testing_data, testing_target, lambda_):
     X = features
     Y = target
     # batch gradient descent
     #print(X.shape)
-    batches = 200
+    batches = 50
     w = numpy.zeros(X.shape[1])
     for i in range(batches):
         grad = numpy.zeros(X.shape[1])
@@ -70,12 +68,14 @@ def descend_batch(features, target, testing_data, testing_target):
             #print("grad +=", (yhat - y) * x)
             grad += (yhat - y) * x
         #print(grad[:10])
+        reg = lambda_ * w
+        grad += reg
         w = w - eta*grad
-        print(w[:10])
+        #print(w[:10])
 
-        print("eval", evaluate(w, X, Y))
-        training_accuracy.append(evaluate(w, X, Y))
-        testing_accuracy.append(evaluate(w, testing_data, testing_target))
+        # TODO: for each iteration, plot the accuracy
+        #print(w)
+        #print("eval", evaluate(w, X, Y))
     return w
 
 def sigma(a):
@@ -99,7 +99,6 @@ def logloss(w, X, Y):
 def ase(x):
     return numpy.sum(numpy.square(x)) / len(x)
 
-
 graph_py = r"""
 import matplotlib
 matplotlib.use('cairo')
@@ -108,14 +107,18 @@ import numpy
 
 training_accuracy = numpy.array(%r)
 testing_accuracy = numpy.array(%r)
-x = numpy.arange(0, len(training_accuracy))
+lambdas = numpy.array(%r)
 
+x = lambdas
 fig, ax = plt.subplots()
+ax.set_xscale('log')
 ax.plot(x, training_accuracy, c='black')
+ax.scatter(x, training_accuracy, c='black')
 ax.plot(x, testing_accuracy, c='blue')
-ax.set(xlabel = 'iterations', ylabel = 'accuracy')
-fig.savefig("q2.1-accuracy.png")
-#plt.show()
+ax.scatter(x, testing_accuracy, c='blue')
+ax.set(xlabel = 'lambda', ylabel = 'accuracy')
+fig.savefig("q2.3-accuracy.png")
+
 
 """
 
