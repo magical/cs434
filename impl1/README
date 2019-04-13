@@ -1,0 +1,14 @@
+code for CS 434, winter 2019, assignment 1
+
+all programs have been tested on flip.
+requires python3 with numpy installed, and python2 with numpy and matplotlib installed.
+
+usage:
+
+% python3 q1.2.py housing_train.txt housing_test.txt
+% python3 q1.3.py housing_train.txt housing_test.txt
+% python3 q1.4.py housing_train.txt housing_test.txt
+% python3 q2.1.py usps-4-9-train.csv usps-4-9-test.csv 1.0
+% python3 q2.3.py usps-4-9-train.csv usps-4-9-test.csv 0.0001,0.001,0.01,0.1,1.0,10.0,100.0
+
+running the commands listed will recreate all the graphs and data included in my pdf.
