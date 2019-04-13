@@ -87,8 +87,8 @@ ax.plot(x, training_accuracy, c='black')
 ax.scatter(x, training_accuracy, c='black')
 ax.plot(x, testing_accuracy, c='blue')
 ax.scatter(x, testing_accuracy, c='blue')
-ax.set(xlabel = 'lambda', ylabel = 'accuracy')
-fig.savefig("q1.4-accuracy.png")
+ax.set(xlabel = 'number of random features', ylabel = 'average squared error')
+fig.savefig("q1.4-errors.png")
 """
 
 main()
