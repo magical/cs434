@@ -13,21 +13,22 @@ from collections import Counter
 #  - divide data so that one side is more positive and one side is more negative
 
 class Node:
-    def __init__(self, feature):
+    def __init__(self, feature, split_point):
         self.feature = feature
+        self.split = split_point
         self.children = []
-    def add(value, node):
+    def add(self, value, node):
         self.children.append((value, node))
     def __str__(self):
         # TODO: prettify
-        s = "feature %d (%s)" % (self.feature, self.children)
+        s = "feature %d (%s)" % (self.feature, ", ".join(str(v)+"=>"+str(s) for v, s in self.children))
         return s
 
 class Leaf:
     def __init__(self, decision):
         self.decision = decision
     def __str__(self):
-        if decision > 0:
+        if self.decision > 0:
             return "+"
         else:
             return "-"
@@ -40,39 +41,34 @@ def divide(S, features, depth):
     """
     if depth <= 0 or not features:
         # return majority class
-        positive = len(S[0] == 1)
-        negative = len(S[0] == -1)
+        positive = sum(1 for x in S if x[0] == 1)
+        negative = len(S) - positive
         if positive >= negative:
             return Leaf(+1)
         return Leaf(-1)
 
-    best_feature = find_best_feature(S, features)
+    best_feature, best_value = find_best_feature(S, features)
 
-    tree = Node(best_feature)
-    for value in best_feature:
-        si = split(S, best_feature, value)
+    tree = Node(best_feature, best_value)
+    a, b = split(S, best_feature, best_value)
+    for si in a, b:
         # <remove current feature from feature list>
         subtree = divide(si, features, depth-1)
-        node.add(value, subtree)
+        tree.add(best_value, subtree)
 
-    return
+    return tree
 
 def find_best_feature(S, features):
     benefit = {}
+    values = {}
     for f in features:
         U = []
-        ### need to consider all binary splits of f at v
-        values = get_boundary_points(S, f)
-        b = entropy(S, f)
-        for value in f:
-            si = split(S, f, value)
-            pi = len(si) / len(S)
-            b -= entropy(si, f)*pi
-
+        value, b = find_best_split(S, f)
+        values[f] = value
         benefit[f] = b
 
     best_feature = max(features, key=benefit.__getitem__)
-    return best_featureo
+    return best_feature, values[best_feature]
 
 def entropy(S, f):
     """determine the information theoretic entropy of some feature in S"""
@@ -103,7 +99,8 @@ def find_best_split(S, f):
         a, b = split(S, f, value)
         p = len(a) / len(S)
         benefit[value] = entropy(S, f) - p*entropy(a, f) - (1-p)*entropy(b, f)
-    return max(values, key=benefit.__getitem__)
+    best_value = max(values, key=benefit.__getitem__)
+    return best_value, benefit[best_value]
 
 def split(S, f, value):
     """split S into two sets according to whether feature f < value"""
