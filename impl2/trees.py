@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import textwrap
 import math
 from collections import Counter
 
@@ -13,15 +14,19 @@ from collections import Counter
 #  - divide data so that one side is more positive and one side is more negative
 
 class Node:
-    def __init__(self, feature, split_point):
+    def __init__(self, S, feature, split_point):
+        #self.S = S
         self.feature = feature
         self.split = split_point
+        self.entropy = entropy(S)
+        self.positive = sum(1 for x in S if x[0] == 1)
+        self.negative = len(S) - self.positive
         self.children = []
     def add(self, value, node):
         self.children.append((value, node))
     def __str__(self):
         # TODO: prettify
-        s = "feature %d (%s)" % (self.feature, ", ".join(str(v)+"=>"+str(s) for v, s in self.children))
+        s = "feature %d %d:%d %f (\n%s)" % (self.feature, self.positive, self.negative, self.entropy, ",\n".join(textwrap.indent(str(v)+"=>"+str(s), "  ") for v, s in self.children))
         return s
 
 class Leaf:
@@ -49,10 +54,10 @@ def divide(S, features, depth):
 
     best_feature, best_value = find_best_feature(S, features)
 
-    tree = Node(best_feature, best_value)
+    tree = Node(S, best_feature, best_value)
     a, b = split(S, best_feature, best_value)
     for si in a, b:
-        # <remove current feature from feature list>
+        # TODO: remove current feature from feature list?
         subtree = divide(si, features, depth-1)
         tree.add(best_value, subtree)
 
