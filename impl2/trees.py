@@ -30,13 +30,18 @@ class Node:
         return s
 
 class Leaf:
-    def __init__(self, decision):
-        self.decision = decision
+    def __init__(self, S):
+        self.positive = sum(1 for x in S if x[0] == 1)
+        self.negative = len(S) - self.positive
+        if self.positive >= self.negative:
+            self.decision = +1
+        else:
+            self.decision = -1
     def __str__(self):
         if self.decision > 0:
-            return "+"
+            return "+ (%d:%d)" % (self.positive, self.negative)
         else:
-            return "-"
+            return "- (%d:%d)" % (self.positive, self.negative)
 
 def divide(S, features, depth):
     """generates a decision tree of depth d
@@ -46,11 +51,7 @@ def divide(S, features, depth):
     """
     if depth <= 0 or not features:
         # return majority class
-        positive = sum(1 for x in S if x[0] == 1)
-        negative = len(S) - positive
-        if positive >= negative:
-            return Leaf(+1)
-        return Leaf(-1)
+        return Leaf(S)
 
     best_feature, best_value = find_best_feature(S, features)
 
@@ -67,10 +68,9 @@ def find_best_feature(S, features):
     benefit = {}
     values = {}
     for f in features:
-        U = []
-        value, b = find_best_split(S, f)
+        value, gain = find_best_split(S, f)
         values[f] = value
-        benefit[f] = b
+        benefit[f] = gain
 
     best_feature = max(features, key=benefit.__getitem__)
     return best_feature, values[best_feature]
@@ -100,10 +100,15 @@ def find_best_split(S, f):
     benefit = {}
     for value in values:
         a, b = split(S, f, value)
-        p = len(a) / len(S)
-        benefit[value] = entropy(S) - p*entropy(a) - (1-p)*entropy(b)
+        benefit[value] = calc_information_gain(S, a, b)
     best_value = max(values, key=benefit.__getitem__)
     return best_value, benefit[best_value]
+
+def calc_information_gain(S, a, b):
+    """calculate the information gain from splitting S into sets a and b"""
+    p = len(a) / len(S)
+    H = entropy(S) - p*entropy(a) - (1-p)*entropy(b)
+    return H
 
 def split(S, f, value):
     """split S into two sets according to whether feature f < value"""
