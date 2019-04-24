@@ -116,13 +116,14 @@ def split(S, f, value):
             b.append(x)
     return a, b
 
-
 # pruning:
 #   build a perfect tree on the training set
 #   measure error against validation set
 #   divide validtion data based on the tree - pump it to the leaf nodes
 #   for each feature node directly above a leaf, compute validtion error change if that node removed
 #   remove node that improves validtion error the most
+#
+# we aren't doing pruning though
 
 import csv
 
