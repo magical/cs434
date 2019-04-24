@@ -70,14 +70,12 @@ def find_best_feature(S, features):
     best_feature = max(features, key=benefit.__getitem__)
     return best_feature, values[best_feature]
 
-def entropy(S, f):
-    """determine the information theoretic entropy of some feature in S"""
-    p = {}
-    c = Counter(x[f] for x in S)
-    size = len(S)
-    for v, count in c.items():
-        p[v] = count / size
-    return -sum(p[v]*log2(p[v]) for v in c)
+def entropy(S):
+    """determine the information theoretic entropy of the labels in S"""
+    counter = Counter(x[0] for x in S)
+    size = float(len(S))
+    ps = [count/size for (v, count) in counter.items()]
+    return -sum(p*log2(p) for p in ps)
 
 def log2(x):
     return math.log(x, 2)
@@ -98,7 +96,7 @@ def find_best_split(S, f):
     for value in values:
         a, b = split(S, f, value)
         p = len(a) / len(S)
-        benefit[value] = entropy(S, f) - p*entropy(a, f) - (1-p)*entropy(b, f)
+        benefit[value] = entropy(S) - p*entropy(a) - (1-p)*entropy(b)
     best_value = max(values, key=benefit.__getitem__)
     return best_value, benefit[best_value]
 
