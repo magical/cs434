@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-import textwrap
+import csv
 import math
+import textwrap
 from collections import Counter
 
 # choose best test for root of tree
@@ -22,11 +23,25 @@ class Node:
         self.positive = sum(1 for x in S if x[0] == 1)
         self.negative = len(S) - self.positive
         self.children = []
+    def gain(self, S):
+        a, b = split(S, self.feature, self.split)
+        return calc_information_gain(S, a, b)
     def add(self, value, node):
         self.children.append((value, node))
+    def predict(self, x):
+        if x[self.feature] < self.split:
+            return self.children[0][1].predict(x)
+        else:
+            return self.children[1][1].predict(x)
     def __str__(self):
-        # TODO: prettify
-        s = "feature %d %d:%d %f (\n%s)" % (self.feature, self.positive, self.negative, self.entropy, ",\n".join(textwrap.indent(str(v)+"=>"+str(s), "  ") for v, s in self.children))
+        labels = ["<", "≥"]
+        s = "feature %d ratio=%d:%d entropy=%f (\n%s)" % (
+                self.feature,
+                self.positive,
+                self.negative,
+                self.entropy,
+                ",\n".join(textwrap.indent("feature %d %s %f -> %s" % (self.feature, l, self.split, node), "  ")
+                        for (v, node), l in zip(self.children, labels)))
         return s
 
 class Leaf:
@@ -37,11 +52,13 @@ class Leaf:
             self.decision = +1
         else:
             self.decision = -1
+    def predict(self, x):
+        return self.decision
     def __str__(self):
         if self.decision > 0:
-            return "+ (%d:%d)" % (self.positive, self.negative)
+            return "leaf +1 (ratio=%d:%d)" % (self.positive, self.negative)
         else:
-            return "- (%d:%d)" % (self.positive, self.negative)
+            return "leaf -1 (ratio=%d:%d)" % (self.positive, self.negative)
 
 def divide(S, features, depth):
     """generates a decision tree of depth d
@@ -121,6 +138,13 @@ def split(S, f, value):
             b.append(x)
     return a, b
 
+def read_data(filename):
+    with open(filename, "r") as f:
+        r = csv.reader(f)
+        data = [list(map(int_or_float, x)) for x in r]
+    assert all(x[0] in (+1, -1) for x in data)
+    return data
+
 # pruning:
 #   build a perfect tree on the training set
 #   measure error against validation set
@@ -130,14 +154,13 @@ def split(S, f, value):
 #
 # we aren't doing pruning though
 
-import csv
 
 def main():
     with open("p2-data/knn_test.csv", "r") as f:
         r = csv.reader(f)
         data = [list(map(int_or_float, x)) for x in r]
     features = list(range(1, len(data[0])))
-    tree = divide(data, features, 1)
+    tree = divide(data, features, 3)
     print(tree)
 
 def int_or_float(s):
