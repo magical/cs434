@@ -69,6 +69,8 @@ def divide(S, features, depth):
     if depth <= 0 or not features:
         # return majority class
         return Leaf(S)
+    if len(set(x[0] for x in S)) == 1:
+        return Leaf(S)
 
     best_feature, best_value = find_best_feature(S, features)
 
