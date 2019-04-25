@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 
+import sys
 import trees
 
+def getarg(n, default):
+    if len(sys.argv) > n:
+        return sys.argv[n]
+    return default
+
 def main():
-    data = trees.read_data("p2-data/knn_train.csv")
-    testing_data = trees.read_data("p2-data/knn_test.csv")
+    data = trees.read_data(getarg(1, "p2-data/knn_train.csv"))
+    testing_data = trees.read_data(getarg(2, "p2-data/knn_test.csv"))
 
     features = list(range(1, len(data[0])))
     tree = trees.divide(data, features, 1)
