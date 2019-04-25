@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 import matplotlib
 matplotlib.use('cairo')
 import matplotlib.pyplot as plt
