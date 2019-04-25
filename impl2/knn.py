@@ -67,6 +67,13 @@ def read_csv(filename):
         data = [list(map(int_or_float, x)) for x in r]
     target = [row.pop(0) for row in data]
     assert set(target) == {-1, +1}
+
+    # normalize data to range [0,1]
+    data = numpy.array(data)
+    data -= numpy.min(data, axis=0)
+    data /= numpy.max(data, axis=0)
+    data = list(data)
+
     return data, target
 
 def getarg(n, default):
