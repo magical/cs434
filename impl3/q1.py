@@ -2,11 +2,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import datasets, transforms
-import seaborn as sns
-sns.set()
+#import seaborn as sns
+#sns.set()
 
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 if torch.cuda.is_available():
     device = torch.device('cuda')
@@ -39,14 +39,14 @@ for (X_train, y_train) in train_loader:
     print('y_train:', y_train.size(), 'type:', y_train.type())
     break
 
-pltsize=1
-plt.figure(figsize=(10*pltsize, pltsize))
-
-for i in range(10):
-    plt.subplot(1,10,i+1)
-    plt.axis('off')
-    plt.imshow(X_train[i,:,:,:].numpy().reshape(28,28), cmap="gray")
-    plt.title('Class: '+str(y_train[i].item()))
+#pltsize=1
+#plt.figure(figsize=(10*pltsize, pltsize))
+#
+#for i in range(10):
+#    plt.subplot(1,10,i+1)
+#    plt.axis('off')
+#    plt.imshow(X_train[i,:,:,:].numpy().reshape(28,28), cmap="gray")
+#    plt.title('Class: '+str(y_train[i].item()))
 
 class Net(nn.Module):
     def __init__(self):
@@ -128,10 +128,10 @@ for epoch in range(1, epochs + 1):
     train(epoch)
     validate(lossv, accv)
 
-plt.figure(figsize=(5,3))
-plt.plot(np.arange(1,epochs+1), lossv)
-plt.title('validation loss')
-
-plt.figure(figsize=(5,3))
-plt.plot(np.arange(1,epochs+1), accv)
-plt.title('validation accuracy');
+#plt.figure(figsize=(5,3))
+#plt.plot(np.arange(1,epochs+1), lossv)
+#plt.title('validation loss')
+#
+#plt.figure(figsize=(5,3))
+#plt.plot(np.arange(1,epochs+1), accv)
+#plt.title('validation accuracy');
