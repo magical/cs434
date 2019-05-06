@@ -16,23 +16,17 @@ else:
 print('Using PyTorch version:', torch.__version__, ' Device:', device)
 
 batch_size = 32
+learning_rate = 0.01
 
-train_dataset = datasets.MNIST('./data', 
-                               train=True, 
-                               download=True, 
-                               transform=transforms.ToTensor())
+if len(sys.argv) > 1:
+    learning_rate = float(sys.argv[1])
 
-validation_dataset = datasets.MNIST('./data', 
-                                    train=False, 
-                                    transform=transforms.ToTensor())
+# TODO: scale input features?
 
-train_loader = torch.utils.data.DataLoader(dataset=train_dataset, 
-                                           batch_size=batch_size, 
-                                           shuffle=True)
-
-validation_loader = torch.utils.data.DataLoader(dataset=validation_dataset, 
-                                                batch_size=batch_size, 
-                                                shuffle=False)
+train_dataset = datasets.CIFAR10('./data', train=True, download=True, transform=transforms.ToTensor())
+validation_dataset = datasets.CIFAR10('./data', train=False, transform=transforms.ToTensor())
+train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+validation_loader = torch.utils.data.DataLoader(dataset=validation_dataset, batch_size=batch_size, shuffle=False)
 
 for (X_train, y_train) in train_loader:
     print('X_train:', X_train.size(), 'type:', X_train.type())
@@ -51,22 +45,18 @@ for (X_train, y_train) in train_loader:
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(28*28, 50)
-        self.fc1_drop = nn.Dropout(0.2)
-        self.fc2 = nn.Linear(50, 50)
-        self.fc2_drop = nn.Dropout(0.2)
-        self.fc3 = nn.Linear(50, 10)
+        self.fc1 = nn.Linear(32*32*3, 100)
+        self.fc3 = nn.Linear(100, 10)
 
     def forward(self, x):
-        x = x.view(-1, 28*28)
-        x = F.relu(self.fc1(x))
-        x = self.fc1_drop(x)
-        x = F.relu(self.fc2(x))
-        x = self.fc2_drop(x)
-        return F.log_softmax(self.fc3(x), dim=1)
+        x = x.view(-1, 32*32*3)
+        x = torch.sigmoid(self.fc1(x))
+        x = F.log_softmax(self.fc3(x), dim=1)
+        return x
 
+# TODO: play around with learning rate
 model = Net().to(device)
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.5)
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 criterion = nn.CrossEntropyLoss()
 
 print(model)
@@ -118,15 +108,18 @@ def validate(loss_vector, accuracy_vector):
     accuracy = 100. * correct.to(torch.float32) / len(validation_loader.dataset)
     accuracy_vector.append(accuracy)
     
-    print('\nValidation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+    print('Validation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
         val_loss, correct, len(validation_loader.dataset), accuracy))
+
 
 epochs = 5
 
 lossv, accv = [], []
 for epoch in range(1, epochs + 1):
     train(epoch)
+    print()
     validate(lossv, accv)
+    print()
 
 #plt.figure(figsize=(5,3))
 #plt.plot(np.arange(1,epochs+1), lossv)
