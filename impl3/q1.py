@@ -18,16 +18,20 @@ print('Using PyTorch version:', torch.__version__, ' Device:', device)
 
 batch_size = 32
 learning_rate = 0.01
+epochs = 5
 
 if len(sys.argv) > 1:
     learning_rate = float(sys.argv[1])
 
 # TODO: scale input features?
 
-train_dataset = datasets.CIFAR10('./data', train=True, download=True, transform=transforms.ToTensor())
-validation_dataset = datasets.CIFAR10('./data', train=False, transform=transforms.ToTensor())
+core_dataset = datasets.CIFAR10('./data', train=True, download=True, transform=transforms.ToTensor())
+train_dataset = torch.utils.data.Subset(core_dataset, range(0, 40000))
+validation_dataset = torch.utils.data.Subset(core_dataset, range(40000, 50000))
+test_dataset = datasets.CIFAR10('./data', train=False, transform=transforms.ToTensor())
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
 validation_loader = torch.utils.data.DataLoader(dataset=validation_dataset, batch_size=batch_size, shuffle=False)
+test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
 
 for (X_train, y_train) in train_loader:
     print('X_train:', X_train.size(), 'type:', X_train.type())
@@ -107,20 +111,42 @@ def validate(loss_vector, accuracy_vector):
     loss_vector.append(val_loss)
 
     accuracy = 100. * correct.to(torch.float32) / len(validation_loader.dataset)
-    accuracy_vector.append(accuracy)
+    accuracy_vector.append(float(accuracy))
     
     print('Validation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
         val_loss, correct, len(validation_loader.dataset), accuracy))
 
+def test(loss_vector, accuracy_vector):
+    model.eval()
+    val_loss, correct = 0, 0
+    for data, target in test_loader:
+        data = data.to(device)
+        target = target.to(device)
+        output = model(data)
+        val_loss += criterion(output, target).data.item()
+        pred = output.data.max(1)[1] # get the index of the max log-probability
+        correct += pred.eq(target.data).cpu().sum()
 
-epochs = 5
+    val_loss /= len(test_loader)
+    loss_vector.append(val_loss)
 
-lossv, accv = [], []
+    accuracy = 100. * correct.to(torch.float32) / len(test_loader.dataset)
+    accuracy_vector.append(float(accuracy))
+
+    print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
+        val_loss, correct, len(test_loader.dataset), accuracy))
+
+
+lossv, accv = [[],[]], [[],[]]
 for epoch in range(1, epochs + 1):
     train(epoch)
     print()
-    validate(lossv, accv)
+    validate(lossv[0], accv[0])
+    test(lossv[1],accv[1])
     print()
+
+print(lossv)
+print(accv)
 
 #plt.figure(figsize=(5,3))
 #plt.plot(np.arange(1,epochs+1), lossv)
