@@ -1,0 +1,11 @@
+same output layer
+same loss function (cross entropy loss?)
+same optimizer (SGD)
+
+
+tests with 10 epochs:
+lr=0.7 dismal performance. can't seem to get above 32% accuracy. loss hovers around 2.5523
+lr=0.1 pretty good. plateaus at 45%
+lr=0.01 improves but very slowly. don't think it's going to reach 45%
+lr=0.02 hopefully better. not much better! alas. got to 43% instead of 40%
+lr=0.001 started at 20%! versus 30%.
