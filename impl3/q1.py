@@ -1,4 +1,6 @@
+import os
 import sys
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -13,17 +15,22 @@ if torch.cuda.is_available():
     device = torch.device('cuda')
 else:
     device = torch.device('cpu')
-    
+
 print('Using PyTorch version:', torch.__version__, ' Device:', device)
 
 batch_size = 32
 learning_rate = 0.01
-epochs = 5
+epochs = 20
 
 if len(sys.argv) > 1:
     learning_rate = float(sys.argv[1])
 
-# TODO: scale input features?
+# TODO: scale input features? idk, seems to already be done
+# TODO: dump model parameters after each epoch
+# TODO: plots
+
+# output: (data for) plots of training loss and validation error as a function of training epoch,
+# for a variety of learning rates
 
 core_dataset = datasets.CIFAR10('./data', train=True, download=True, transform=transforms.ToTensor())
 train_dataset = torch.utils.data.Subset(core_dataset, range(0, 40000))
@@ -69,7 +76,7 @@ print(model)
 def train(epoch, log_interval=200):
     # Set model to training mode
     model.train()
-    
+
     # Loop over each batch from the training set
     for batch_idx, (data, target) in enumerate(train_loader):
         # Copy data to GPU if needed
@@ -77,8 +84,8 @@ def train(epoch, log_interval=200):
         target = target.to(device)
 
         # Zero gradient buffers
-        optimizer.zero_grad() 
-        
+        optimizer.zero_grad()
+
         # Pass data through the network
         output = model(data)
 
@@ -87,14 +94,16 @@ def train(epoch, log_interval=200):
 
         # Backpropagate
         loss.backward()
-        
+
         # Update weights
         optimizer.step()
-        
+
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.data.item()))
+
+
 
 def validate(loss_vector, accuracy_vector):
     model.eval()
@@ -112,38 +121,27 @@ def validate(loss_vector, accuracy_vector):
 
     accuracy = 100. * correct.to(torch.float32) / len(validation_loader.dataset)
     accuracy_vector.append(float(accuracy))
-    
+
     print('Validation set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
         val_loss, correct, len(validation_loader.dataset), accuracy))
 
-def test(loss_vector, accuracy_vector):
-    model.eval()
-    val_loss, correct = 0, 0
-    for data, target in test_loader:
-        data = data.to(device)
-        target = target.to(device)
-        output = model(data)
-        val_loss += criterion(output, target).data.item()
-        pred = output.data.max(1)[1] # get the index of the max log-probability
-        correct += pred.eq(target.data).cpu().sum()
 
-    val_loss /= len(test_loader)
-    loss_vector.append(val_loss)
-
-    accuracy = 100. * correct.to(torch.float32) / len(test_loader.dataset)
-    accuracy_vector.append(float(accuracy))
-
-    print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
-        val_loss, correct, len(test_loader.dataset), accuracy))
-
+model_dir = "q1-model"
+try:
+    os.mkdir(model_dir)
+except FileExistsError:
+    pass
 
 lossv, accv = [[],[]], [[],[]]
 for epoch in range(1, epochs + 1):
     train(epoch)
     print()
     validate(lossv[0], accv[0])
-    test(lossv[1],accv[1])
+    #test(lossv[1],accv[1])
     print()
+
+    filename = os.path.join(model_dir, "q1-lr{0:f}-epoch{1:d}".format(learning_rate, epoch))
+    torch.save(model.state_dict(), filename)
 
 print(lossv)
 print(accv)
