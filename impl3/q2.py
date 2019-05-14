@@ -77,6 +77,8 @@ def train(epoch, log_interval=200):
     # Set model to training mode
     model.train()
 
+    lossv = []
+
     # Loop over each batch from the training set
     for batch_idx, (data, target) in enumerate(train_loader):
         # Copy data to GPU if needed
@@ -91,6 +93,7 @@ def train(epoch, log_interval=200):
 
         # Calculate loss
         loss = criterion(output, target)
+        lossv.append(loss.data.item())
 
         # Backpropagate
         loss.backward()
@@ -102,6 +105,8 @@ def train(epoch, log_interval=200):
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.data.item()))
+
+    return sum(lossv) / len(lossv)
 
 
 
@@ -132,19 +137,24 @@ try:
 except FileExistsError:
     pass
 
-lossv, accv = [[],[]], [[],[]]
+training_lossv = []
+lossv, accv = [], []
 for epoch in range(1, epochs + 1):
-    train(epoch)
+    loss = train(epoch)
+    training_lossv.append(loss)
     print()
-    validate(lossv[0], accv[0])
+    validate(lossv, accv)
     #test(lossv[1],accv[1])
     print()
 
     filename = os.path.join(model_dir, "q2-lr{0:f}-epoch{1:d}".format(learning_rate, epoch))
     torch.save(model.state_dict(), filename)
 
-print(lossv)
-print(accv)
+
+datafilename = os.path.join(model_dir, "q2-lr{0}.data".format(learning_rate, epoch))
+with open(datafilename, "w") as datafile:
+    print("loss", *training_lossv, sep="\t", file=datafile)
+    print("accuracy", *accv, sep="\t", file=datafile)
 
 #plt.figure(figsize=(5,3))
 #plt.plot(np.arange(1,epochs+1), lossv)
