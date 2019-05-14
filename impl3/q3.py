@@ -24,6 +24,7 @@ learning_rate = 0.01
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--model-dir", type=str, default="q3-model")
     parser.add_argument("--lr", dest="learning_rate", type=float, default=0.01)
     parser.add_argument("--epochs", type=int, default=5)
     parser.add_argument("dropout", type=float, default=0.0)
@@ -148,7 +149,7 @@ def validate(loss_vector, accuracy_vector):
         val_loss, correct, len(validation_loader.dataset), accuracy))
 
 
-model_dir = "q3-model"
+model_dir = args.model_dir
 try:
     os.mkdir(model_dir)
 except FileExistsError:
