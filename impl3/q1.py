@@ -25,8 +25,8 @@ epochs = 20
 if len(sys.argv) > 1:
     learning_rate = float(sys.argv[1])
 
-# TODO: scale input features? idk, seems to already be done
-# TODO: dump model parameters after each epoch
+# DONE: scale input features? idk, seems to already be done
+# DONE: dump model parameters after each epoch
 # TODO: plots
 
 # output: (data for) plots of training loss and validation error as a function of training epoch,
