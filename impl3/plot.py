@@ -1,14 +1,10 @@
 #!/usr/bin/env python2
+import sys
+import os
 import matplotlib
 matplotlib.use('cairo')
 import matplotlib.pyplot as plt
 import numpy
-
-#prefix = "q3-d0.1-m0.5-wd0.001"
-#datafilename = "q3-model/" + prefix + ".data"
-
-prefix = "q1-lr0.1"
-datafilename = "q1-model/" + prefix + ".data"
 
 def read_data(datafilename):
     with open(datafilename) as f:
@@ -20,10 +16,7 @@ def read_data(datafilename):
         accv = [float(x) for x in accv[1:]]
     return lossv, accv
 
-for lr in "0.1", "0.01", "0.001", "0.0001":
-    prefix = "q1-lr{}".format(lr)
-    datafilename = "q1-model/" + prefix + ".data"
-
+def make_plot(datafilename, outfilename):
     lossv, accv = read_data(datafilename)
     x = list(range(1,len(lossv)+1))
 
@@ -36,4 +29,17 @@ for lr in "0.1", "0.01", "0.001", "0.0001":
     ax1.set(xlabel = 'Epoch', ylabel = 'Loss')
     ax2.set(ylabel = 'Accuracy')
     ax1.legend([l1, l2], ["Epoch", "Accuracy"])
-    fig.savefig(prefix+".png")
+    fig.savefig(outfilename)
+
+def main():
+    for datafilename in sys.argv[1:]:
+        base, _ = os.path.splitext(os.path.basename(datafilename))
+        outfilename = base+".png"
+        make_plot(datafilename, outfilename)
+
+    #for lr in "0.1", "0.01", "0.001", "0.0001":
+    #    prefix = "q1-lr{}".format(lr)
+    #    datafilename = "q1-model/" + prefix + ".data"
+    #    make_plot(datafilename, prefix+".png")
+
+main()
