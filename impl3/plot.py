@@ -28,7 +28,7 @@ def make_plot(datafilename, outfilename):
     l2, = ax2.plot(x, accv, c='blue', marker='s')
     ax1.set(xlabel = 'Epoch', ylabel = 'Loss')
     ax2.set(ylabel = 'Accuracy')
-    ax1.legend([l1, l2], ["Epoch", "Accuracy"])
+    ax1.legend([l1, l2], ["Loss", "Accuracy"])
     fig.savefig(outfilename)
 
 def main():
