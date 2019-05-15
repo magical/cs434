@@ -52,6 +52,12 @@ def main():
             ax2.tick_params(axis='y', right=False, labelright=False)
         if c > 0:
             ax1.tick_params(axis='y', left=False, labelleft=False)
+        if c == cols-1:
+            ax2.set(ylabel="Accuracy")
+        if c == 0:
+            ax1.set(ylabel="Loss")
+        if r == rows-1:
+            ax1.set(xlabel="Epochs")
         base, _ = os.path.splitext(os.path.basename(datafilename))
         lines = make_plot(datafilename, ax1, ax2)
     
