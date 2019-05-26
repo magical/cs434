@@ -1,4 +1,7 @@
 import argparse
+import random
+from collections import Counter
+
 import numpy
 import scipy.cluster.vq as vq
 
@@ -16,7 +19,9 @@ def main():
 
     data = read_data()
     print(data.shape)
-    print(cluster(data, args.k, args.iter)[1])
+    centroid, errors = cluster(data, args.k, args.iter)
+    print(centroid)
+    print(errors)
 
 def read_data():
     with open(FILENAME, "rb") as f:
@@ -24,13 +29,31 @@ def read_data():
 
 def cluster(data, k, iter):
     errors = []
-    for i in range(iter):
-        if i == 0:
-            centroid, label = vq.kmeans2(data, k, iter=1, minit='points')
+    for iteration in range(iter+1):
+        #centroid, label = vq.kmeans2(data, centroid, iter=1, minit='matrix')
+
+        m = data.shape[0]
+        # 1. compute new centroids
+        if iteration == 0:
+            centroid = numpy.array(random.sample(data, k))
+            label = numpy.zeros(m, dtype=numpy.int)
         else:
-            centroid, label = vq.kmeans2(data, centroid, iter=1, minit='matrix')
+            # average of each point in the cluster
+            centroid = numpy.zeros((k, data.shape[1]))
+            for i in range(k):
+                assert any(label==i) # XXX delete
+                centroid[i] = numpy.mean(data[label==i], axis=0)
+
+        # 2. label each point according to which centroid it is closest to
+        for i in range(m):
+            norm_squared = numpy.sum(numpy.square(centroid - data[i]), axis=1)
+            label[i] = numpy.argmax(norm_squared)
+
+        # 3. Calculate error
         sse = compute_error(data, centroid[label])
         errors.append(sse)
+        print(sorted(Counter(label).items()))
+
     return centroid, errors
 
 def compute_error(actual, predicted):
