@@ -47,7 +47,7 @@ def cluster(data, k, iter):
         # 2. label each point according to which centroid it is closest to
         for i in range(m):
             norm_squared = numpy.sum(numpy.square(centroid - data[i]), axis=1)
-            label[i] = numpy.argmax(norm_squared)
+            label[i] = numpy.argmin(norm_squared)
 
         # 3. Calculate error
         sse = compute_error(data, centroid[label])
