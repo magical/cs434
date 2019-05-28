@@ -11,7 +11,7 @@ FILENAME = "p4-data.txt"
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("k", type=int, help="number of clusters to find")
-    parser.add_argument("--iter", type=int, default=100, help="number of iterations of k-means to run")
+    parser.add_argument("--iter", type=int, default=20, help="number of iterations of k-means to run")
     parser.add_argument("--seed", type=int, default=42, help="seed the initialization parameters")
     args = parser.parse_args()
 
