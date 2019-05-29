@@ -1,3 +1,4 @@
+from __future__ import print_function
 import argparse
 import random
 from collections import Counter
@@ -18,10 +19,12 @@ def main():
     numpy.random.seed(args.seed)
 
     data = read_data()
-    print(data.shape)
+    #print(data.shape)
     centroid, errors = cluster(data, args.k, args.iter)
-    print(centroid)
-    print(errors)
+    #print(centroid)
+    #print(errors)
+    for i, e in enumerate(errors):
+        print(args.k, i, e, sep="\t")
 
 def read_data():
     with open(FILENAME, "rb") as f:
@@ -52,7 +55,7 @@ def cluster(data, k, iter):
         # 3. Calculate error
         sse = compute_error(data, centroid[label])
         errors.append(sse)
-        print(sorted(Counter(label).items()))
+        #print(sorted(Counter(label).items()))
 
     return centroid, errors
 
@@ -60,7 +63,7 @@ def compute_error(actual, predicted):
     d = numpy.subtract(actual, predicted)
     return sum(x.dot(x) for x in d)
     e = numpy.inner(d, d)
-    print(e.shape)
+    #print(e.shape)
     return numpy.sum(e)
 
 
