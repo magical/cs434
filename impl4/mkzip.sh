@@ -1,1 +1,1 @@
-zip code.zip README.md *.py kmeans.data p4-data.txt
+zip code.zip README.txt *.py kmeans.data p4-data.txt
