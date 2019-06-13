@@ -15,8 +15,9 @@ def getncols(filename):
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--noclass", help="whether the test file has a class column or not", action="store_true")
     parser.add_argument("train_filename", help="path to training data")
-    parser.add_argument("test_filename", help="path to testing data", nargs="?")
+    parser.add_argument("test_filename", help="path to testing data", default="")
     args = parser.parse_args()
 
     filename = args.train_filename
@@ -48,7 +49,7 @@ def main():
         filename = args.test_filename
     names = numpy.loadtxt(filename, skiprows=1, usecols=[0], dtype=str)
     if args.noclass:
-        cols = range(1,ncols-1)
+        cols = list(range(1,ncols-1))
         testdata = numpy.loadtxt(filename, skiprows=1, usecols=cols)
     else:
         testdata = numpy.loadtxt(filename, skiprows=1, usecols=cols)
